@@ -76,6 +76,10 @@ module Wasabi
       @operations ||= parser.operations
     end
 
+    def types
+      @types ||= parser.types
+    end
+
     def type_namespaces
       @type_namespaces ||= begin
         namespaces = []
@@ -91,7 +95,7 @@ module Wasabi
       @type_definitions ||= begin
         result = []
         parser.types.each do |type, info|
-          (info.keys - [:namespace]).each do |field|
+          (info.keys - [:namespace, :base_type]).each do |field|
             field_type = info[field][:type]
             tag, namespace = field_type.split(":").reverse
             result << [[type, field], tag] if user_defined(namespace)

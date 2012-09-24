@@ -1,6 +1,7 @@
 require "uri"
 require "wasabi/xpath_helper"
 require "wasabi/core_ext/string"
+require "active_support/ordered_hash"
 
 module Wasabi
 
@@ -108,7 +109,11 @@ module Wasabi
 
     def process_type(type, name)
       return unless type
-      @types[name] ||= { :namespace => find_namespace(type) }
+
+      # Make type elements ordered
+      t = ActiveSupport::OrderedHash.new
+      t[:namespace] = find_namespace(type)
+      @types[name] ||= t
 
       xpath(type, "./xs:sequence/xs:element").
         each { |inner| @types[name][inner.attribute("name").to_s] = { :type => inner.attribute("type").to_s } }
@@ -126,9 +131,16 @@ module Wasabi
       ).each do |inherits|
         base = inherits.attribute('base').value.match(/\w+$/).to_s
         if @types[base]
-          @types[name].merge! @types[base]
+          # sub-types' elements should not be overriden by base type's
+          @types[name].merge!(@types[base]){|key, old_val, new_val| old_val }
+          # remember the base type
+          @types[name][:base_type] = base
         else
-          deferred_types << Proc.new { @types[name].merge! @types[base] }
+          p = Proc.new do
+            @types[name].merge! @types[base]
+            @types[name][:base_type] = base
+          end
+          deferred_types << p
         end
       end
     end
