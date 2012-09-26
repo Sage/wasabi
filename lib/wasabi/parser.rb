@@ -89,10 +89,11 @@ module Wasabi
           action = soap_action && !soap_action.empty? ? soap_action : name
 
           # There should be a matching portType for each binding, so we will lookup the input from there.
+          namespace_id, output = output_for(operation)
           namespace_id, input = input_for(operation)
 
           # Store namespace identifier so this operation can be mapped to the proper namespace.
-          @operations[name.snakecase.to_sym] = { :action => action, :input => input, :namespace_identifier => namespace_id }
+          @operations[name.snakecase.to_sym] = { :action => action, :input => input, :output => output, :namespace_identifier => namespace_id}
         elsif !@operations[name.snakecase.to_sym]
           @operations[name.snakecase.to_sym] = { :action => name, :input => name }
         end
@@ -155,22 +156,30 @@ module Wasabi
     end
 
     def input_for(operation)
+      input_output_for(operation, "input")
+    end
+
+    def output_for(operation)
+      input_output_for(operation, "output")
+    end
+
+    def input_output_for(operation, input_output)
       operation_name = operation["name"]
 
       # Look up the input by walking up to portType, then up to the message.
 
       binding_type = at_xpath(operation, "../@type").to_s.split(':').last
-      port_type_input = at_xpath(operation, "../../wsdl:portType[@name='#{binding_type}']/wsdl:operation[@name='#{operation_name}']/wsdl:input")
+      port_type_input_output = at_xpath(operation, "../../wsdl:portType[@name='#{binding_type}']/wsdl:operation[@name='#{operation_name}']/wsdl:#{input_output}")
 
       # TODO: Stupid fix for missing support for imports.
       # Sometimes portTypes are actually included in a separate WSDL.
-      if port_type_input
-        port_message_ns_id, port_message_type = port_type_input.attribute("message").to_s.split(':')
+      if port_type_input_output
+        port_message_ns_id, port_message_type = port_type_input_output.attribute("message").to_s.split(':')
 
         message_ns_id, message_type = nil
 
         # TODO: Support multiple 'part' elements in the message.
-        if (port_message_part = at_xpath(port_type_input, "../../../wsdl:message[@name='#{port_message_type}']/wsdl:part[1]"))
+        if (port_message_part = at_xpath(port_type_input_output, "../../../wsdl:message[@name='#{port_message_type}']/wsdl:part[1]"))
           if (port_message_part_element = port_message_part.attribute("element"))
             message_ns_id, message_type = port_message_part_element.to_s.split(':')
           end

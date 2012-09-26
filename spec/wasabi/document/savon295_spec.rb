@@ -8,6 +8,8 @@ describe Wasabi::Document do
     its(:operations) do
       should include(
         { :sendsms => { :input => "sendsms", :action => "sendsms", :namespace_identifier => "tns" } }
+        # TODO: Deliberately left tests failing.  Need to figure out how to deal with input/output messages that do not include other complex types
+        #{ :sendsms => { :input => "sendsms", :output=>"sendsms", :action => "sendsms", :namespace_identifier => "tns" } }
       )
     end
 

@@ -18,6 +18,11 @@ describe Wasabi::Document do
         { :get_user_login_by_id => { :input => "GetUserLoginById", :action => "/api/api/GetUserLoginById", :namespace_identifier => "typens" } },
         { :get_all_contacts => { :input => "GetAllContacts", :action => "/api/api/GetAllContacts", :namespace_identifier => "typens" } },
         { :search_user => { :input => "SearchUser", :action => "/api/api/SearchUser", :namespace_identifier => "typens" } }
+
+        # TODO: Deliberately left tests failing.  Need to figure out how to deal with input/output messages that do not include other complex types
+        #{ :get_user_login_by_id => { :input => "GetUserLoginById", :output => "GetUserLoginById", :action => "/api/api/GetUserLoginById", :namespace_identifier => "typens" } },
+        #{ :get_all_contacts => { :input => "GetAllContacts", :output => "GetAllContacts", :action => "/api/api/GetAllContacts", :namespace_identifier => "typens" } },
+        #{ :search_user => { :input => "SearchUser", :output => "SearchUser", :action => "/api/api/SearchUser", :namespace_identifier => "typens" } }
       )
     end
 
