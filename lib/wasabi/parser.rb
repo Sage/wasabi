@@ -116,8 +116,15 @@ module Wasabi
       t[:namespace] = find_namespace(type)
       @types[name] ||= t
 
-      xpath(type, "./xs:sequence/xs:element").
-        each { |inner| @types[name][inner.attribute("name").to_s] = { :type => inner.attribute("type").to_s } }
+      xpath(type, "./xs:sequence/xs:element").each do |inner|
+        element_name = inner.attribute("name").to_s
+        @types[name][element_name] = {}
+        [ :type, :nillable, :minOccurs, :maxOccurs ].each do |attr|
+          if v = inner.attribute(attr.to_s)
+            @types[name][element_name][attr] = v.to_s
+          end
+        end
+      end
 
       type.xpath("./xs:complexContent/xs:extension/xs:sequence/xs:element",
         "xs" => "http://www.w3.org/2001/XMLSchema"
