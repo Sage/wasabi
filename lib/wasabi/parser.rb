@@ -139,8 +139,9 @@ module Wasabi
       ).each do |inherits|
         base = inherits.attribute('base').value.match(/\w+$/).to_s
         if @types[base]
-          # sub-types' elements should not be overriden by base type's
-          @types[name].merge!(@types[base]){|key, old_val, new_val| old_val }
+          # sub-types' elements should override base type's elements,
+          # and base types elements should come before sub type's elements in sequence.
+          @types[name] = @types[base].merge(@types[name]){|key, old_val, new_val| new_val }
           # remember the base type
           @types[name][:base_type] = base
         else
